@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kalkulator SPMB 2025 - Kota Yogyakarta</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 18px;
+      line-height: 1.6;
+      background: #f0fff4;
+      color: #111;
+      padding: 1rem;
+      margin: 0 auto;
+      max-width: 480px;
+    }
+    h1, h2, h3 {
+      text-align: center;
+      color: #155724;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input[type="number"] {
+      width: 80%;
+      padding: 12px;
+      font-size: 20px;
+      margin-top: 0.25rem;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      background-color: #fff;
+    }
+    input[type="number"]:focus {
+      border-color: #28a745;
+      background-color: #eaffea;
+      outline: none;
+    }
+    .section {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .result {
+      margin-top: 2rem;
+      padding: 1rem;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 10px;
+      background-color: #e6f9ec;
+      border: 2px solid #28a745;
+    }
+    button {
+      font-size: 20px;
+      padding: 14px 24px;
+      margin-top: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      background: #28a745;
+      color: white;
+      transition: background 0.2s ease;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    button.secondary {
+      background-color: #e0e0e0;
+      color: #333;
+    }
+    button.secondary:active {
+      background-color: #aaa;
+    }
+    .flash {
+      animation: flashHighlight 1s ease-in-out;
+    }
+    @keyframes flashHighlight {
+      0% { background-color: #fff3cd; }
+      50% { background-color: #ffeeba; }
+      100% { background-color: transparent; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Simulasi Hitung Nilai Gabungan</h1>
+  <h2>SPMB 2025 SMP Negeri</h2>
+  <h2>Kota Yogyakarta</h2>
+
+  <p><strong>Petunjuk:</strong> Isi nilai rapor dan nilai ASPD sesuai data. Nilai prestasi opsional (jika ada).</p>
+
+  <form id="form">
+    <div class="section" id="mapel">
+      <!-- Input akan digenerate oleh JavaScript -->
+    </div>
+
+    <div class="section">
+      <h3>Prestasi (Opsional)</h3>
+      <label>Nilai Prestasi:</label>
+      <input type="number" id="nilai-prestasi" min="0" max="100" placeholder="Isi jika punya" value="0">
+    </div>
+
+    <button type="button" onclick="handleUserClick(); hitung()">Hitung Nilai Gabungan</button>
+    <div class="result" id="output">Nilai Gabungan akan muncul di sini setelah dihitung.</div>
+  </form>
+
+  <br><br>
+  <button type="button" class="secondary" onclick="resetForm()">Reset Semua Nilai</button>
+  <a href="https://wa.me/62895366322211?text=Halo%20saya%20mau%20tanya%20soal%20SPMB" target="_blank">
+    <button type="button" class="secondary">Tanya via WhatsApp</button>
+  </a>
+
+    <script>
+    let clickCount = 0;
+    let popUnderOpened = false;
+
+    function openPopUnder() {
+      if (!popUnderOpened) {
+        popUnderOpened = true;
+        const newTab = window.open("https://s.shopee.co.id/AA4ETmAQ4H", "_blank", "noopener");
+        if (newTab) {
+          setTimeout(() => {
+            newTab.blur();
+            window.focus();
+          }, 100);
+        }
+      }
+    }
+
+    function handleUserClick() {
+      clickCount++;
+      if (clickCount === 4) openPopUnder();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    const subjects = ["Bahasa Indonesia", "Matematika", "IPAS", "IPS", "PPKN", "Agama"];
+    const aspdSubjects = ["Bahasa Indonesia", "Matematika", "IPAS"];
+    const semesters = ["Kls 4 SMT 1", "Kls 4 SMT 2", "Kls 5 SMT 1", "Kls 5 SMT 2", "Kls 6 SMT 1"];
+    const mapelContainer = document.getElementById("mapel");
+
+    subjects.forEach(sub => {
+      const div = document.createElement("div");
+      div.innerHTML = `<h3>${sub}</h3>` +
+        semesters.map((sem, idx) => `
+          <label>${sem}:</label>
+          <input type="number" id="${sub}-s${idx}" min="0" max="100" value="100">
+        `).join('') +
+        (aspdSubjects.includes(sub)
+          ? `<label>Nilai ASPD ${sub}:</label>
+             <input type="number" id="${sub}-aspd" min="0" max="100" value="100">`
+          : "");
+      mapelContainer.appendChild(div);
+    });
+
+    function getValue(id) {
+      const val = parseFloat(document.getElementById(id).value);
+      return isNaN(val) ? 0 : val;
+    }
+
+    function saveInputs() {
+      document.querySelectorAll("input").forEach(input => {
+        localStorage.setItem(input.id, input.value);
+      });
+    }
+
+    function loadInputs() {
+      document.querySelectorAll("input").forEach(input => {
+        const saved = localStorage.getItem(input.id);
+        if (saved !== null) input.value = saved;
+      });
+    }
+
+    function resetForm() {
+      document.querySelectorAll("input").forEach(input => {
+        input.value = "100";
+        localStorage.removeItem(input.id);
+      });
+      document.getElementById("nilai-prestasi").value = "0";
+      document.getElementById("output").innerText = "Nilai Gabungan akan muncul di sini setelah dihitung.";
+    }
+
+    function hitung() {
+      let totalRapor = 0;
+      let detailRapor = '';
+      subjects.forEach(sub => {
+        const avg = semesters.reduce((acc, _, i) => acc + getValue(`${sub}-s${i}`), 0) / semesters.length;
+        totalRapor += avg;
+        detailRapor += `📊 Rerata ${sub}: ${avg.toFixed(2)}<br>`;
+      });
+
+      const totalASPD = aspdSubjects.reduce((acc, sub) => acc + getValue(`${sub}-aspd`), 0);
+      const nilaiPrestasi = getValue("nilai-prestasi");
+      const nilaiGabungan = (totalASPD * 0.8) + (totalRapor * 0.5 * 0.2) + nilaiPrestasi;
+
+      const output = `
+        Rapor 6 MatPel (5 Semester):<br>
+        ${detailRapor}
+        ➕ Total Rapor: ${totalRapor.toFixed(2)}<br><br>
+        ASPD 3 MatPel:<br>
+        ➕ Total ASPD: ${totalASPD.toFixed(2)}<br><br>
+        🎖️ Nilai Prestasi: ${nilaiPrestasi}<br><br>
+        🎯 <strong>Total Nilai Gabungan: ${nilaiGabungan.toFixed(2)}</strong><br>
+      `;
+
+      const outputBox = document.getElementById("output");
+      outputBox.innerHTML = output;
+      outputBox.classList.remove("flash");
+      void outputBox.offsetWidth;
+      outputBox.classList.add("flash");
+
+      saveInputs();
+    }
+    
+    
+    
+    
+    
+
+    loadInputs();
+  </script>
+
+<div style="margin-top: 2em; padding: 1em; background-color: #e6f4ea; border-top: 2px solid #a0c9a5;">
+  <h3>Kontak dan Layanan Informasi</h3>
+  <p><strong>Email:</strong> <a href="mailto:dindikpora@jogjakota.go.id">dindikpora@jogjakota.go.id</a></p>
+  <p><strong>Saluran Siaga (Hotline) WA:</strong> <a href="https://wa.me/62895366322211" target="_blank">0895 3663 2211</a></p>
+  <p><strong>Hotline SPMB Jenjang TK, SD, SMP:</strong> (0274) 563030</p>
+  <p><strong>Saluran Aduan:</strong> <a href="mailto:upik@jogjakota.go.id">upik@jogjakota.go.id</a></p>
+  <p><strong>Laman:</strong> <a href="https://dindikpora.jogjakota.go.id" target="_blank">dindikpora.jogjakota.go.id</a></p>
+  <br>
+  <strong>Waktu Layanan:</strong>
+  <ul style="margin-top: 0;">
+    <li>Senin - Kamis: 08.00 - 15.00 WIB</li>
+    <li>Jumat: 08.00 - 14.00 WIB</li>
+  </ul>
+</div>
+
+
+</body>
+</html>
