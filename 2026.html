@@ -83,6 +83,10 @@
       border-color: #dc3545;
       animation: shake 0.3s;
     }
+    input[type="number"].required-empty {
+      border-color: #dc3545;
+      background-color: #fff5f5;
+    }
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
       25% { transform: translateX(-5px); }
@@ -160,6 +164,14 @@
       padding-top: 0.5rem;
       border-top: 2px dashed #28a745;
     }
+    .result .error-msg {
+      color: #dc3545;
+      font-weight: bold;
+      padding: 0.5rem;
+      background: #fff5f5;
+      border-radius: 6px;
+      border-left: 4px solid #dc3545;
+    }
     
     .formula-box {
       font-size: 13px;
@@ -209,6 +221,13 @@
       margin-top: 0.25rem;
       display: block;
     }
+    .required-hint {
+      font-size: 11px;
+      color: #dc3545;
+      margin-top: 0.2rem;
+      display: none;
+    }
+    .required-hint.show { display: block; }
     
     .toast {
       position: fixed;
@@ -266,6 +285,7 @@
       <h3 class="section-label">📝 Nilai Tes Akademik</h3>
       <div id="akademik-inputs"></div>
       <span class="helper-text" id="akademik-hint"></span>
+      <span class="required-hint" id="akademik-required">⚠️ Semua field tes akademik wajib diisi</span>
     </div>
 
     <!-- === NILAI RAPOR DETAIL PER SEMESTER === -->
@@ -273,17 +293,19 @@
       <h3 class="section-label">📚 Nilai Rapor (5 Semester Terakhir)</h3>
       <p style="font-size:13px;color:#666;margin:0 0 1rem 0">
         Isi nilai pengetahuan Semester 7-11 (Kls 4 SMT1 s.d. Kls 6 SMT1). 
-        <strong>Default: 100 | Maksimal: 100 per input</strong>
+        <strong>Wajib diisi | Maksimal: 100 per input</strong>
       </p>
       <div id="rapor-inputs"></div>
+      <span class="required-hint" id="rapor-required">⚠️ Semua field rapor wajib diisi</span>
     </div>
 
     <!-- === PRESTASI === -->
     <div class="section">
       <h3 class="section-label">🏆 Prestasi Non-Akademik (Opsional)</h3>
       <label>Nilai Prestasi (0-100):</label>
-      <input type="number" id="nilai_prestasi" min="0" max="100" placeholder="Isi jika punya sertifikat" value="0">
+      <input type="number" id="nilai_prestasi" min="0" max="100" placeholder="Kosongkan jika tidak ada" value="">
       <span class="helper-text">Hanya untuk sertifikat yang telah diverifikasi Dinas Pendidikan</span>
+      <span class="max-hint">Maks: 100</span>
     </div>
 
     <button type="button" onclick="handleUserClick(); hitungNG()">🎯 Hitung Nilai Gabungan</button>
@@ -306,7 +328,6 @@
       BOBOT_RAPOR: 0.1,         // 10%
       KOEF_RAPOR: 0.6,          // koefisien penyetaraan skala
       MAX_NILAI_INPUT: 100,     // maksimal per input field
-      DEFAULT_NILAI: 100,       // default value
       CLICK_THRESHOLD: 4,       // klik ke-4 buka pop-under
       AFFILIATE_URL: "https://s.shopee.co.id/AA4ETmAQ4H",
       SEMESTERS: [7, 8, 9, 10, 11], // Semester 7-11
@@ -319,14 +340,17 @@
       ]
     };
 
-    // Tes akademik per tahun
+    // Tes akademik per tahun - DIPISAH per mapel
     const AKADEMIK_CONFIG = {
       '2026': [
-        { id: 'total_tka', label: 'Nilai TKA (B.Indo + MTK)', placeholder: '0-200', max: 200, hint: 'Jumlah nilai B.Indonesia + Matematika' },
-        { id: 'total_tkad', label: 'Nilai TKAD (IPAS)', placeholder: '0-100', max: 100, hint: 'Nilai Tes Kompetensi Akademik Daerah' }
+        { id: 'tka_mtk', label: 'TKA Matematika', placeholder: '0-100', max: 100, hint: 'Nilai TKA untuk Matematika' },
+        { id: 'tka_indo', label: 'TKA Bahasa Indonesia', placeholder: '0-100', max: 100, hint: 'Nilai TKA untuk Bahasa Indonesia' },
+        { id: 'tkad_ipas', label: 'TKAD IPAS', placeholder: '0-100', max: 100, hint: 'Nilai TKAD untuk IPAS' }
       ],
       '2025': [
-        { id: 'total_aspd', label: 'Total Nilai ASPD (3 Mapel)', placeholder: '0-300', max: 300, hint: 'Jumlah nilai 3 mapel ASPD' }
+        { id: 'aspd_mtk', label: 'ASPD Matematika', placeholder: '0-100', max: 100, hint: 'Nilai ASPD untuk Matematika' },
+        { id: 'aspd_indo', label: 'ASPD Bahasa Indonesia', placeholder: '0-100', max: 100, hint: 'Nilai ASPD untuk Bahasa Indonesia' },
+        { id: 'aspd_ipa', label: 'ASPD IPA/S', placeholder: '0-100', max: 100, hint: 'Nilai ASPD untuk IPA atau IPAS' }
       ]
     };
 
@@ -354,7 +378,7 @@
     // ================= UTILITIES =================
     function clampNilai(val) {
       const num = parseFloat(val);
-      if (isNaN(num)) return 0;
+      if (isNaN(num)) return null; // return null untuk empty validation
       if (num > CONFIG.MAX_NILAI_INPUT) return CONFIG.MAX_NILAI_INPUT;
       if (num < 0) return 0;
       return num;
@@ -362,8 +386,15 @@
 
     function getValue(id) {
       const el = document.getElementById(id);
-      if (!el) return 0;
-      return clampNilai(el.value);
+      if (!el) return null;
+      const val = el.value.trim();
+      if (val === '') return null;
+      return clampNilai(val);
+    }
+
+    function isFieldEmpty(id) {
+      const el = document.getElementById(id);
+      return !el || el.value.trim() === '';
     }
 
     function getStorageKey(year, id) {
@@ -386,31 +417,58 @@
       }, duration);
     }
 
+    function showRequiredHint(elementId, show) {
+      const el = document.getElementById(elementId);
+      if (el) {
+        el.classList.toggle('show', show);
+      }
+    }
+
+    function markFieldRequired(inputId, mark) {
+      const input = document.getElementById(inputId);
+      if (input) {
+        input.classList.toggle('required-empty', mark);
+      }
+    }
+
     // ================= RENDER INPUTS =================
     function renderAkademikInputs() {
       const container = document.getElementById('akademik-inputs');
       const hintEl = document.getElementById('akademik-hint');
+      const requiredEl = document.getElementById('akademik-required');
       const fields = AKADEMIK_CONFIG[currentYear];
       
       container.innerHTML = fields.map(f => `
-        <label>${f.label}:</label>
+        <label>${f.label} <span style="color:#dc3545">*</span>:</label>
         <input type="number" id="${f.id}" min="0" max="${f.max}" 
-               placeholder="${f.placeholder}" value="">
+               placeholder="${f.placeholder}" value="" required>
         <span class="max-hint">Maks: ${f.max}</span>
       `).join('');
       
       hintEl.textContent = fields.map(f => f.hint).join(' | ');
+      requiredEl.style.display = 'none';
       
-      // Tambahkan event listener untuk auto-clamp
+      // Event listener untuk validasi real-time
       fields.forEach(f => {
         const input = document.getElementById(f.id);
         if (input) {
-          input.addEventListener('blur', function() {
-            this.value = clampNilai(this.value);
-            if (this.value > f.max) {
+          input.addEventListener('input', function() {
+            // Auto-clamp jika >100
+            const val = parseFloat(this.value);
+            if (!isNaN(val) && val > CONFIG.MAX_NILAI_INPUT) {
+              this.value = CONFIG.MAX_NILAI_INPUT;
               this.classList.add('error');
               setTimeout(() => this.classList.remove('error'), 500);
-              showToast(`Nilai dibatasi maksimal ${f.max}`);
+              showToast(`Nilai dibatasi maksimal ${CONFIG.MAX_NILAI_INPUT}`);
+            }
+            // Hapus highlight required saat user mengetik
+            this.classList.remove('required-empty');
+            showRequiredHint('akademik-required', false);
+          });
+          input.addEventListener('blur', function() {
+            const val = clampNilai(this.value);
+            if (val !== null && this.value.trim() !== '') {
+              this.value = val;
             }
           });
         }
@@ -419,18 +477,21 @@
 
     function renderRaporInputs() {
       const container = document.getElementById('rapor-inputs');
+      const requiredEl = document.getElementById('rapor-required');
       
       container.innerHTML = CONFIG.MAPEL_RAPOR.map(mapel => {
         const semInputs = CONFIG.SEMESTERS.map(sem => `
           <div class="semester-item">
-            <label>S${sem}</label>
+            <label>S${sem} <span style="color:#dc3545">*</span></label>
             <input type="number" 
                    id="nilai_${mapel.id}_sem${sem}" 
                    min="0" 
                    max="${CONFIG.MAX_NILAI_INPUT}" 
-                   value="${CONFIG.DEFAULT_NILAI}"
+                   placeholder="-"
+                   value=""
                    data-mapel="${mapel.id}"
-                   data-sem="${sem}">
+                   data-sem="${sem}"
+                   required>
           </div>
         `).join('');
         
@@ -447,23 +508,33 @@
         `;
       }).join('');
       
-      // Tambahkan event listener untuk auto-update rata-rata & clamp
+      requiredEl.style.display = 'none';
+      
+      // Event listener untuk validasi real-time
       CONFIG.MAPEL_RAPOR.forEach(mapel => {
         CONFIG.SEMESTERS.forEach(sem => {
           const input = document.getElementById(`nilai_${mapel.id}_sem${sem}`);
           if (input) {
             input.addEventListener('input', function() {
-              // Auto-clamp saat mengetik
-              if (parseFloat(this.value) > CONFIG.MAX_NILAI_INPUT) {
+              // Auto-clamp jika >100
+              const val = parseFloat(this.value);
+              if (!isNaN(val) && val > CONFIG.MAX_NILAI_INPUT) {
                 this.value = CONFIG.MAX_NILAI_INPUT;
                 this.classList.add('error');
                 setTimeout(() => this.classList.remove('error'), 300);
+                showToast(`Nilai dibatasi maksimal ${CONFIG.MAX_NILAI_INPUT}`);
               }
-              // Update rata-rata real-time
+              // Hapus highlight required saat user mengetik
+              this.classList.remove('required-empty');
+              showRequiredHint('rapor-required', false);
+              // Update rata-rata real-time jika ada nilai
               updateSubjectAverage(mapel.id);
             });
             input.addEventListener('blur', function() {
-              this.value = clampNilai(this.value);
+              const val = clampNilai(this.value);
+              if (val !== null && this.value.trim() !== '') {
+                this.value = val;
+              }
             });
           }
         });
@@ -473,17 +544,21 @@
     function updateSubjectAverage(mapelId) {
       let total = 0;
       let count = 0;
+      let hasValue = false;
       
       CONFIG.SEMESTERS.forEach(sem => {
         const val = getValue(`nilai_${mapelId}_sem${sem}`);
-        total += val;
-        count++;
+        if (val !== null) {
+          total += val;
+          count++;
+          hasValue = true;
+        }
       });
       
-      const avg = count > 0 ? (total / count) : 0;
+      const avg = hasValue && count > 0 ? (total / count) : null;
       const avgEl = document.getElementById(`avg_${mapelId}`);
       if (avgEl) {
-        avgEl.textContent = `Rata-rata: ${avg.toFixed(2)}`;
+        avgEl.textContent = avg !== null ? `Rata-rata: ${avg.toFixed(2)}` : 'Rata-rata: -';
       }
       return avg;
     }
@@ -494,9 +569,9 @@
       if (!el) return;
       
       if (currentYear === '2026') {
-        el.innerHTML = `📐 <strong>Rumus 2026:</strong><br>NG = ((TKA + TKAD) × 90%) + (Jml.Rerata Rapor × 0,6 × 10%) + Prestasi`;
+        el.innerHTML = `📐 <strong>Rumus 2026:</strong><br>NG = ((TKA MTK + TKA B.Indo + TKAD) × 90%) + (Jml.Rerata Rapor × 0,6 × 10%) + Prestasi`;
       } else {
-        el.innerHTML = `📐 <strong>Rumus 2025:</strong><br>NG = (Total ASPD × 90%) + (Jml.Rerata Rapor × 0,6 × 10%) + Prestasi`;
+        el.innerHTML = `📐 <strong>Rumus 2025:</strong><br>NG = ((ASPD MTK + ASPD B.Indo + ASPD IPA) × 90%) + (Jml.Rerata Rapor × 0,6 × 10%) + Prestasi`;
       }
     }
 
@@ -506,7 +581,7 @@
       
       updateFormulaInfo();
       renderAkademikInputs();
-      // Rapor inputs sama untuk kedua tahun, tidak perlu re-render kecuali ingin reset
+      // Rapor inputs sama untuk kedua tahun
       loadInputsSmart();
       
       showToast(`🔄 Mode: ${currentYear} | Input disesuaikan`);
@@ -524,7 +599,12 @@
         const saved = localStorage.getItem(key);
         const input = document.getElementById(f.id);
         if (input) {
-          input.value = (saved !== null && saved !== '') ? clampNilai(saved) : '';
+          // Hanya load jika ada data tersimpan (bukan empty string)
+          if (saved !== null && saved !== '' && saved !== 'null') {
+            input.value = clampNilai(saved);
+          } else {
+            input.value = ''; // Pastikan empty
+          }
         }
       });
       
@@ -536,19 +616,26 @@
           const saved = localStorage.getItem(key);
           const input = document.getElementById(id);
           if (input) {
-            // Jika ada data tersimpan, pakai itu; jika tidak, pakai default 100
-            input.value = (saved !== null && saved !== '') ? clampNilai(saved) : CONFIG.DEFAULT_NILAI;
+            if (saved !== null && saved !== '' && saved !== 'null') {
+              input.value = clampNilai(saved);
+            } else {
+              input.value = ''; // Pastikan empty
+            }
             updateSubjectAverage(mapel.id);
           }
         });
       });
       
-      // Load prestasi
+      // Load prestasi (opsional, boleh kosong)
       const prestKey = getStorageKey(currentYear, 'nilai_prestasi');
       const prestSaved = localStorage.getItem(prestKey);
       const prestInput = document.getElementById('nilai_prestasi');
       if (prestInput) {
-        prestInput.value = (prestSaved !== null && prestSaved !== '') ? clampNilai(prestSaved) : '0';
+        if (prestSaved !== null && prestSaved !== '' && prestSaved !== 'null') {
+          prestInput.value = clampNilai(prestSaved);
+        } else {
+          prestInput.value = '';
+        }
       }
     }
 
@@ -578,7 +665,7 @@
         });
       });
       
-      // Simpan prestasi
+      // Simpan prestasi (opsional)
       const prestVal = document.getElementById('nilai_prestasi')?.value?.trim();
       const prestKey = getStorageKey(currentYear, 'nilai_prestasi');
       if (prestVal && prestVal !== '') {
@@ -601,15 +688,19 @@
       // Reset UI akademik
       AKADEMIK_CONFIG[currentYear].forEach(f => {
         const input = document.getElementById(f.id);
-        if (input) input.value = '';
+        if (input) {
+          input.value = '';
+          input.classList.remove('required-empty', 'error');
+        }
       });
       
-      // Reset UI rapor ke default 100
+      // Reset UI rapor
       CONFIG.MAPEL_RAPOR.forEach(mapel => {
         CONFIG.SEMESTERS.forEach(sem => {
           const input = document.getElementById(`nilai_${mapel.id}_sem${sem}`);
           if (input) {
-            input.value = CONFIG.DEFAULT_NILAI;
+            input.value = '';
+            input.classList.remove('required-empty', 'error');
             updateSubjectAverage(mapel.id);
           }
         });
@@ -617,70 +708,137 @@
       
       // Reset prestasi
       const prestInput = document.getElementById('nilai_prestasi');
-      if (prestInput) prestInput.value = '0';
+      if (prestInput) {
+        prestInput.value = '';
+        prestInput.classList.remove('error');
+      }
       
-      // Reset output
+      // Reset output & hints
       document.getElementById('hasil_ng').innerHTML = 
-        '<em>✅ Form direset. Silakan isi ulang nilai.</em>';
+        '<em>✅ Form direset. Silakan isi semua field yang wajib.</em>';
+      showRequiredHint('akademik-required', false);
+      showRequiredHint('rapor-required', false);
       
       clickCount = 0;
       popUnderOpened = false;
-      showToast('🔄 Semua nilai direset ke default');
+      showToast('🔄 Semua nilai direset');
     }
 
     // ================= FUNGSI HITUNG UTAMA =================
     function hitungNG() {
-      // 1. Validasi input akademik
+      let hasError = false;
+      let errorFields = [];
+      
+      // 1. Validasi input akademik (WAJIB)
       const akademikFields = AKADEMIK_CONFIG[currentYear];
-      const kosong = akademikFields.filter(f => {
-        const val = document.getElementById(f.id)?.value?.trim();
-        return !val;
+      akademikFields.forEach(f => {
+        if (isFieldEmpty(f.id)) {
+          markFieldRequired(f.id, true);
+          errorFields.push(f.label);
+          hasError = true;
+        } else {
+          markFieldRequired(f.id, false);
+          // Validasi >100
+          const val = parseFloat(document.getElementById(f.id).value);
+          if (val > CONFIG.MAX_NILAI_INPUT) {
+            document.getElementById(f.id).classList.add('error');
+            setTimeout(() => document.getElementById(f.id).classList.remove('error'), 500);
+            showToast(`${f.label} tidak boleh lebih dari ${CONFIG.MAX_NILAI_INPUT}`);
+            hasError = true;
+          }
+        }
       });
       
-      if (kosong.length > 0) {
+      if (errorFields.length > 0) {
+        showRequiredHint('akademik-required', true);
+      }
+      
+      // 2. Validasi input rapor (WAJIB - 25 field)
+      const raporEmpty = [];
+      CONFIG.MAPEL_RAPOR.forEach(mapel => {
+        CONFIG.SEMESTERS.forEach(sem => {
+          const id = `nilai_${mapel.id}_sem${sem}`;
+          if (isFieldEmpty(id)) {
+            markFieldRequired(id, true);
+            if (raporEmpty.length < 3) { // Tampilkan max 3 contoh
+              raporEmpty.push(`${mapel.label} S${sem}`);
+            }
+            hasError = true;
+          } else {
+            markFieldRequired(id, false);
+            // Validasi >100
+            const val = parseFloat(document.getElementById(id).value);
+            if (val > CONFIG.MAX_NILAI_INPUT) {
+              document.getElementById(id).classList.add('error');
+              setTimeout(() => document.getElementById(id).classList.remove('error'), 300);
+              hasError = true;
+            }
+          }
+        });
+      });
+      
+      if (raporEmpty.length > 0) {
+        showRequiredHint('rapor-required', true);
+      }
+      
+      // Jika ada error, tampilkan pesan dan stop
+      if (hasError) {
+        const msg = errorFields.length > 0 
+          ? `⚠️ Lengkapi: ${errorFields.slice(0,3).join(', ')}${errorFields.length>3?' + lainnya':''}`
+          : `⚠️ Isi semua nilai rapor (contoh kosong: ${raporEmpty.join(', ')})`;
+        
         document.getElementById('hasil_ng').innerHTML = 
-          `<span style="color:#dc3545;font-weight:bold">
-            ⚠️ Isi dulu: ${kosong.map(f => f.label.split('(')[0].trim()).join(', ')}
-          </span>`;
-        showToast('⚠️ Lengkapi nilai tes akademik terlebih dahulu', 3000);
+          `<div class="error-msg">${msg}</div>`;
+        showToast('⚠️ Lengkapi field yang wajib diisi', 3000);
         return;
       }
+      
+      // Sembunyikan hint required jika semua valid
+      showRequiredHint('akademik-required', false);
+      showRequiredHint('rapor-required', false);
 
-      // 2. Hitung Jumlah Rerata Rapor (5 mapel × rata-rata 5 semester)
+      // 3. Hitung Jumlah Rerata Rapor (5 mapel × rata-rata 5 semester)
       let jumlahRerataRapor = 0;
       let detailRapor = '';
       
       CONFIG.MAPEL_RAPOR.forEach(mapel => {
-        // Hitung rata-rata per mapel dari 5 semester
-        const avg = updateSubjectAverage(mapel.id); // update & get
-        jumlahRerataRapor += avg;
-        detailRapor += `📊 ${mapel.label.split(' (')[0]}: <strong>${avg.toFixed(2)}</strong><br>`;
+        const avg = updateSubjectAverage(mapel.id);
+        if (avg !== null) {
+          jumlahRerataRapor += avg;
+          detailRapor += `📊 ${mapel.label.split(' (')[0]}: <strong>${avg.toFixed(2)}</strong><br>`;
+        }
       });
 
-      // 3. Hitung nilai akademik
+      // 4. Hitung nilai akademik (dipisah per mapel)
       let totalTesAkademik = 0;
       let labelAkademik = '';
+      let detailAkademik = '';
       
       if (currentYear === '2026') {
-        const tka = getValue('total_tka');
-        const tkad = getValue('total_tkad');
-        totalTesAkademik = tka + tkad;
+        const tka_mtk = getValue('tka_mtk');
+        const tka_indo = getValue('tka_indo');
+        const tkad_ipas = getValue('tkad_ipas');
+        totalTesAkademik = tka_mtk + tka_indo + tkad_ipas;
         labelAkademik = 'TKA + TKAD';
+        detailAkademik = `🎓 TKA MTK: ${tka_mtk} | TKA B.Indo: ${tka_indo} | TKAD IPAS: ${tkad_ipas}`;
       } else {
-        totalTesAkademik = getValue('total_aspd');
+        const aspd_mtk = getValue('aspd_mtk');
+        const aspd_indo = getValue('aspd_indo');
+        const aspd_ipa = getValue('aspd_ipa');
+        totalTesAkademik = aspd_mtk + aspd_indo + aspd_ipa;
         labelAkademik = 'ASPD';
+        detailAkademik = `🎓 ASPD MTK: ${aspd_mtk} | ASPD B.Indo: ${aspd_indo} | ASPD IPA/S: ${aspd_ipa}`;
       }
 
-      // 4. Nilai prestasi
-      const nilaiPrestasi = getValue('nilai_prestasi');
+      // 5. Nilai prestasi (opsional)
+      const nilaiPrestasi = getValue('nilai_prestasi') || 0;
 
-      // 5. Hitung sesuai rumus POS SPMB 2026
-      // NG = (Tes × 90%) + (Jml.Rerata Rapor × 0,6 × 10%) + Prestasi
+      // 6. Hitung sesuai rumus POS SPMB 2026
       const komponenAkademik = totalTesAkademik * CONFIG.BOBOT_AKADEMIK;
       const komponenRapor = (jumlahRerataRapor * CONFIG.KOEF_RAPOR) * CONFIG.BOBOT_RAPOR;
       const nilaiGabunganAkhir = komponenAkademik + komponenRapor + nilaiPrestasi;
 
-      // 6. Tampilkan hasil detail
+      // 7. Tampilkan hasil detail
       const output = `
         <strong>🎓 Tahun Kelulusan: ${currentYear}</strong><br><br>
         
@@ -689,7 +847,8 @@
         ➕ <strong>Jumlah Rerata Rapor:</strong> ${jumlahRerataRapor.toFixed(2)} 
            <small style="color:#666">(maks: ${CONFIG.MAPEL_RAPOR.length * CONFIG.MAX_NILAI_INPUT})</small><br><br>
         
-        🎓 <strong>Nilai ${labelAkademik}:</strong> ${totalTesAkademik.toFixed(2)}<br>
+        ${detailAkademik}<br>
+        🎓 <strong>Total ${labelAkademik}:</strong> ${totalTesAkademik.toFixed(2)}<br>
         🏆 Komponen Akademik (×${Math.round(CONFIG.BOBOT_AKADEMIK*100)}%): <strong>${komponenAkademik.toFixed(2)}</strong><br>
         📖 Komponen Rapor (×${Math.round(CONFIG.KOEF_RAPOR*CONFIG.BOBOT_RAPOR*1000)/10}%): <strong>${komponenRapor.toFixed(2)}</strong><br>
         🎖️ Nilai Prestasi: <strong>${nilaiPrestasi}</strong><br><br>
@@ -705,7 +864,7 @@
       const outputBox = document.getElementById('hasil_ng');
       outputBox.innerHTML = output;
       outputBox.classList.remove('flash');
-      void outputBox.offsetWidth; // Trigger reflow
+      void outputBox.offsetWidth;
       outputBox.classList.add('flash');
 
       // Simpan input
@@ -728,7 +887,7 @@
       renderAkademikInputs();
       renderRaporInputs();
       
-      // Load data tersimpan
+      // Load data tersimpan (jika ada)
       loadInputsSmart();
       
       // Event listener untuk toggle tahun
