@@ -167,301 +167,290 @@
     <button type="button" class="secondary">Tanya via WhatsApp</button>
   </a>
 
-  <script>
-    // ================= STATE & CONFIG =================
-const CONFIG = {
-  BOBOT_AKADEMIK: 0.9,
-  BOBOT_RAPOR: 0.1,
-  KOEF_RAPOR: 0.6,
-  CLICK_THRESHOLD: 4,
-  AFFILIATE_URL: "https://s.shopee.co.id/AA4ETmAQ4H"
-};
+ <script>
+  // ================= STATE & CONFIG =================
+  const CONFIG = {
+    BOBOT_AKADEMIK: 0.9,
+    BOBOT_RAPOR: 0.1,
+    KOEF_RAPOR: 0.6,
+    CLICK_THRESHOLD: 4,
+    AFFILIATE_URL: "https://s.shopee.co.id/AA4ETmAQ4H"
+  };
 
-const RAPOR_2026 = ["Agama", "Pancasila", "Bahasa Indonesia", "Matematika", "IPAS"];
-const RAPOR_2025 = ["Bahasa Indonesia", "Matematika", "IPA atau IPAS", "IPS atau IPAS", "PPKN", "Agama"];
+  // ✅ 5 MAPEL RAPOR - SAMA UNTUK 2025 & 2026 (sesuai POS 2026)
+  const RAPOR_UMUM = [
+    "Agama",
+    "Pancasila",
+    "Bahasa Indonesia",
+    "Matematika",
+    "IPAS"
+  ];
 
-const AKADEMIK_2026 = [
-  { id: "tka", label: "Nilai TKA (B.Indo + MTK)", placeholder: "Jumlah nilai TKA", max: 200 },
-  { id: "tkad", label: "Nilai TKAD (IPAS)", placeholder: "Nilai TKAD", max: 100 }
-];
-const AKADEMIK_2025 = [
-  { id: "aspd", label: "Total Nilai ASPD (3 Mapel)", placeholder: "Jumlah nilai ASPD", max: 300 }
-];
+  // ✅ Tes akademik - BEDA per tahun
+  const AKADEMIK_2026 = [
+    { id: "tka", label: "Nilai TKA (B.Indo + MTK)", placeholder: "Jumlah nilai TKA", max: 200, hint: "TKA: jumlah B.Indo + MTK" },
+    { id: "tkad", label: "Nilai TKAD (IPAS)", placeholder: "Nilai TKAD", max: 100, hint: "TKAD: nilai IPAS" }
+  ];
+  const AKADEMIK_2025 = [
+    { id: "aspd", label: "Total Nilai ASPD (3 Mapel)", placeholder: "Jumlah nilai ASPD", max: 300, hint: "Total nilai 3 mapel ASPD" }
+  ];
 
-let clickCount = 0;
-let popUnderOpened = false;
-let currentYear = localStorage.getItem("spmb_tahun") || "2026";
+  let clickCount = 0;
+  let popUnderOpened = false;
+  let currentYear = localStorage.getItem("spmb_tahun") || "2026";
 
-// ================= POP-UNDER =================
-function openPopUnder() {
-  if (!popUnderOpened) {
-    popUnderOpened = true;
-    const newTab = window.open(CONFIG.AFFILIATE_URL, "_blank", "noopener");
-    if (newTab) {
-      setTimeout(() => { newTab.blur(); window.focus(); }, 100);
+  // ================= POP-UNDER =================
+  function openPopUnder() {
+    if (!popUnderOpened) {
+      popUnderOpened = true;
+      const newTab = window.open(CONFIG.AFFILIATE_URL, "_blank", "noopener");
+      if (newTab) {
+        setTimeout(() => { newTab.blur(); window.focus(); }, 100);
+      }
     }
   }
-}
 
-function handleUserClick() {
-  clickCount++;
-  if (clickCount === CONFIG.CLICK_THRESHOLD) openPopUnder();
-}
-
-// ================= UI HELPERS =================
-function updateFormulaInfo() {
-  const el = document.getElementById('formula-info');
-  if (!el) return;
-  if (currentYear === "2026") {
-    el.innerHTML = `📐 <strong>Rumus 2026:</strong><br>NG = ((TKA + TKAD) × 90%) + (Jml.Rerata Rapor × 0,6 × 10%) + Prestasi`;
-  } else {
-    el.innerHTML = `📐 <strong>Rumus 2025:</strong><br>NG = (Total ASPD × 90%) + (Jml.Rerata Rapor × 0,6 × 10%) + Prestasi`;
+  function handleUserClick() {
+    clickCount++;
+    if (clickCount === CONFIG.CLICK_THRESHOLD) openPopUnder();
   }
-}
 
-function showYearChangeToast() {
-  // Hapus toast lama jika ada
-  const old = document.getElementById("year-toast");
-  if (old) old.remove();
-  
-  const toast = document.createElement("div");
-  toast.id = "year-toast";
-  toast.style.cssText = `
-    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-    background: #155724; color: white; padding: 12px 24px; border-radius: 8px;
-    font-size: 16px; font-weight: bold; z-index: 9999;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    animation: slideDown 0.3s ease;
-  `;
-  toast.innerHTML = `🔄 Mode: <strong>${currentYear}</strong>`;
-  document.body.appendChild(toast);
-  
-  setTimeout(() => {
-    toast.style.animation = "slideUp 0.3s ease";
-    setTimeout(() => toast.remove(), 300);
-  }, 2000);
-  
-  // Inject animasi jika belum ada
-  if (!document.getElementById("toast-keyframes")) {
-    const style = document.createElement("style");
-    style.id = "toast-keyframes";
-    style.textContent = `
-      @keyframes slideDown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
-      @keyframes slideUp { from { top: 20px; opacity: 1; } to { top: -50px; opacity: 0; } }
+  // ================= UI HELPERS =================
+  function updateFormulaInfo() {
+    const el = document.getElementById('formula-info');
+    if (!el) return;
+    if (currentYear === "2026") {
+      el.innerHTML = `📐 <strong>Rumus 2026:</strong><br>NG = ((TKA + TKAD) × 90%) + (Jml.Rerata Rapor × 0,6 × 10%) + Prestasi`;
+    } else {
+      el.innerHTML = `📐 <strong>Rumus 2025:</strong><br>NG = (Total ASPD × 90%) + (Jml.Rerata Rapor × 0,6 × 10%) + Prestasi`;
+    }
+  }
+
+  function showYearChangeToast() {
+    const old = document.getElementById("year-toast");
+    if (old) old.remove();
+
+    const toast = document.createElement("div");
+    toast.id = "year-toast";
+    toast.style.cssText = `
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: #155724; color: white; padding: 12px 24px; border-radius: 8px;
+      font-size: 16px; font-weight: bold; z-index: 9999;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideDown 0.3s ease;
     `;
-    document.head.appendChild(style);
+    toast.innerHTML = `🔄 Mode: <strong>${currentYear}</strong>`;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.animation = "slideUp 0.3s ease";
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
+
+    if (!document.getElementById("toast-keyframes")) {
+      const style = document.createElement("style");
+      style.id = "toast-keyframes";
+      style.textContent = `
+        @keyframes slideDown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
+        @keyframes slideUp { from { top: 20px; opacity: 1; } to { top: -50px; opacity: 0; } }
+      `;
+      document.head.appendChild(style);
+    }
   }
-}
 
-// ================= RENDER INPUTS =================
-function renderAkademikInputs() {
-  const container = document.getElementById("akademik-inputs");
-  if (!container) return;
-  
-  const fields = currentYear === "2026" ? AKADEMIK_2026 : AKADEMIK_2025;
-  container.innerHTML = fields.map(field => `
-    <label>${field.label}:</label>
-    <input type="number" id="${field.id}" min="0" max="${field.max}" 
-           placeholder="${field.placeholder}" value="">
-    <small style="color:#666;display:block;margin-bottom:1rem">
-      ${currentYear === "2026" 
-        ? "TKA: jumlah B.Indo + MTK | TKAD: nilai IPAS" 
-        : "Total 3 mapel ASPD"}
-    </small>
-  `).join('');
-}
+  // ================= RENDER INPUTS =================
+  function renderAkademikInputs() {
+    const container = document.getElementById("akademik-inputs");
+    if (!container) return;
 
-function renderRaporInputs() {
-  const container = document.getElementById("rapor-inputs");
-  if (!container) return;
-  
-  const subjects = currentYear === "2026" ? RAPOR_2026 : RAPOR_2025;
-  container.innerHTML = subjects.map(sub => {
-    const safeId = sub.replace(/\s+/g, '_');
-    return `
-      <label>${sub}:</label>
-      <input type="number" id="rapor_${safeId}" min="0" max="100" placeholder="100">
-      <small style="color:#666;display:block;margin-bottom:0.5rem">
-        Rata-rata 5 semester
+    const fields = currentYear === "2026" ? AKADEMIK_2026 : AKADEMIK_2025;
+    container.innerHTML = fields.map(field => `
+      <label>${field.label}:</label>
+      <input type="number" id="${field.id}" min="0" max="${field.max}" 
+             placeholder="${field.placeholder}" value="">
+      <small style="color:#666;display:block;margin-bottom:1rem">
+        ${field.hint}
+      </small>
+    `).join('');
+  }
+
+  function renderRaporInputs() {
+    const container = document.getElementById("rapor-inputs");
+    if (!container) return;
+
+    // ✅ Gunakan RAPOR_UMUM untuk kedua tahun
+    container.innerHTML = RAPOR_UMUM.map(sub => {
+      const safeId = sub.replace(/\s+/g, '_');
+      return `
+        <label>${sub}:</label>
+        <input type="number" id="rapor_${safeId}" min="0" max="100" placeholder="100">
+        <small style="color:#666;display:block;margin-bottom:0.5rem">
+          Rata-rata 5 semester (Kls 4 SMT1 s.d. Kls 6 SMT1)
+        </small>
+      `;
+    }).join('');
+  }
+
+  // ================= TOGGLE UTAMA =================
+  function toggleForm() {
+    currentYear = document.querySelector('input[name="tahun"]:checked').value;
+    localStorage.setItem("spmb_tahun", currentYear);
+
+    updateFormulaInfo();
+    renderAkademikInputs();
+    renderRaporInputs();
+    loadInputsSmart();
+    showYearChangeToast();
+
+    document.getElementById("output").innerHTML = 
+      `<em style="color:#666">💡 Masukkan nilai, lalu klik "Hitung"</em>`;
+  }
+
+  // ================= SMART LOAD/SAVE =================
+  function getValue(id) {
+    const el = document.getElementById(id);
+    if (!el) return 0;
+    const val = parseFloat(el.value);
+    return isNaN(val) ? 0 : val;
+  }
+
+  function loadInputsSmart() {
+    let hasData = false;
+    document.querySelectorAll("input[type='number']").forEach(input => {
+      if (!input.id) return;
+      const key = `spmb_${currentYear}_${input.id}`;
+      const saved = localStorage.getItem(key);
+      if (saved !== null && saved !== "") {
+        input.value = saved;
+        hasData = true;
+      } else {
+        input.value = "";
+      }
+    });
+
+    const prestKey = `spmb_${currentYear}_nilai-prestasi`;
+    const prestSaved = localStorage.getItem(prestKey);
+    const prestInput = document.getElementById("nilai-prestasi");
+    if (prestSaved !== null && prestSaved !== "" && prestInput) {
+      prestInput.value = prestSaved;
+      hasData = true;
+    } else if (prestInput) {
+      prestInput.value = "";
+    }
+    return hasData;
+  }
+
+  function saveInputs() {
+    document.querySelectorAll("input").forEach(input => {
+      if (!input.id) return;
+      const key = `spmb_${currentYear}_${input.id}`;
+      if (input.value && input.value.trim() !== "") {
+        localStorage.setItem(key, input.value);
+      } else {
+        localStorage.removeItem(key);
+      }
+    });
+    localStorage.setItem("spmb_tahun", currentYear);
+  }
+
+  function resetForm() {
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith(`spmb_${currentYear}_`)) {
+        localStorage.removeItem(key);
+      }
+    });
+    renderAkademikInputs();
+    renderRaporInputs();
+    const prestInput = document.getElementById("nilai-prestasi");
+    if (prestInput) prestInput.value = "";
+    document.getElementById("output").innerHTML = 
+      `<em style="color:#666">💡 Form direset. Silakan isi ulang.</em>`;
+    clickCount = 0;
+    popUnderOpened = false;
+  }
+
+  // ================= HITUNG =================
+  function hitung() {
+    const akademikIds = currentYear === "2026" ? ["tka", "tkad"] : ["aspd"];
+    const kosong = akademikIds.filter(id => {
+      const val = document.getElementById(id)?.value?.trim();
+      return !val;
+    });
+
+    if (kosong.length > 0) {
+      document.getElementById("output").innerHTML = 
+        `<span style="color:#dc3545;font-weight:bold">
+          ⚠️ Isi dulu: ${kosong.map(id => id.toUpperCase()).join(", ")}
+        </span>`;
+      return;
+    }
+
+    // ✅ Hitung jumlah rerata rapor: PASTI 5 mapel
+    let jumlahRerataRapor = 0;
+    let detailRapor = '';
+    RAPOR_UMUM.forEach(sub => {
+      const id = `rapor_${sub.replace(/\s+/g,'_')}`;
+      const nilai = getValue(id);
+      jumlahRerataRapor += nilai;
+      detailRapor += `📊 ${sub}: ${nilai ? nilai.toFixed(2) : "-" }<br>`;
+    });
+
+    // ✅ Hitung nilai akademik sesuai tahun
+    let nilaiAkademik = 0;
+    if (currentYear === "2026") {
+      nilaiAkademik = getValue("tka") + getValue("tkad");
+    } else {
+      nilaiAkademik = getValue("aspd");
+    }
+
+    const nilaiPrestasi = getValue("nilai-prestasi");
+
+    // ✅ Rumus inti (NG = 90% Akademik + 6% Rapor + Prestasi)
+    const komponenAkademik = nilaiAkademik * CONFIG.BOBOT_AKADEMIK;
+    const komponenRapor = (jumlahRerataRapor * CONFIG.KOEF_RAPOR) * CONFIG.BOBOT_RAPOR;
+    const nilaiGabungan = komponenAkademik + komponenRapor + nilaiPrestasi;
+
+    // ✅ Output dengan info validasi
+    const output = `
+      <strong>Tahun Kelulusan: ${currentYear}</strong><br><br>
+      📚 Rapor (${RAPOR_UMUM.length} Mapel):<br>${detailRapor}
+      ➕ Jumlah Rerata: <strong>${jumlahRerataRapor.toFixed(2)}</strong> 
+         <small style="color:#666">(maks: ${RAPOR_UMUM.length * 100})</small><br><br>
+      🎓 Akademik (${currentYear === "2026" ? "TKA+TKAD" : "ASPD"}): <strong>${nilaiAkademik.toFixed(2)}</strong><br>
+      🏆 Komponen Akademik (×90%): ${komponenAkademik.toFixed(2)}<br>
+      📖 Komponen Rapor (×6%): ${komponenRapor.toFixed(2)}<br>
+      🎖️ Prestasi: ${nilaiPrestasi}<br><br>
+      🎯 <span style="font-size:1.2em;color:#155724">
+        NILAI GABUNGAN: ${nilaiGabungan.toFixed(2)}
+      </span>
+      <br><small style="color:#666">
+        💡 Nilai maksimal tanpa prestasi: ${(300*0.9 + 500*0.06).toFixed(2)} = 300.00
       </small>
     `;
-  }).join('');
-}
 
-// ================= TOGGLE UTAMA =================
-function toggleForm() {
-  // 1. Update state & simpan pilihan tahun
-  currentYear = document.querySelector('input[name="tahun"]:checked').value;
-  localStorage.setItem("spmb_tahun", currentYear);
-  
-  // 2. Update UI
-  updateFormulaInfo();
-  renderAkademikInputs();
-  renderRaporInputs();
-  
-  // 3. Load data HANYA jika sudah pernah disimpan
-  loadInputsSmart();
-  
-  // 4. Feedback visual
-  showYearChangeToast();
-  
-  // 5. Reset output
-  document.getElementById("output").innerHTML = 
-    `<em style="color:#666">💡 Masukkan nilai, lalu klik "Hitung"</em>`;
-}
+    const outputBox = document.getElementById("output");
+    outputBox.innerHTML = output;
+    outputBox.classList.remove("flash");
+    void outputBox.offsetWidth;
+    outputBox.classList.add("flash");
 
-// ================= SMART LOAD/SAVE =================
-function getValue(id) {
-  const el = document.getElementById(id);
-  if (!el) return 0;
-  const val = parseFloat(el.value);
-  return isNaN(val) ? 0 : val;
-}
-
-function loadInputsSmart() {
-  let hasData = false;
-  
-  document.querySelectorAll("input[type='number']").forEach(input => {
-    if (!input.id) return;
-    const key = `spmb_${currentYear}_${input.id}`;
-    const saved = localStorage.getItem(key);
-    
-    if (saved !== null && saved !== "") {
-      input.value = saved;
-      hasData = true;
-    } else {
-      input.value = ""; // Kosongkan, biarkan placeholder yang bicara
-    }
-  });
-  
-  // Load nilai prestasi juga
-  const prestKey = `spmb_${currentYear}_nilai-prestasi`;
-  const prestSaved = localStorage.getItem(prestKey);
-  const prestInput = document.getElementById("nilai-prestasi");
-  if (prestSaved !== null && prestSaved !== "" && prestInput) {
-    prestInput.value = prestSaved;
-    hasData = true;
-  } else if (prestInput) {
-    prestInput.value = "";
-  }
-  
-  return hasData;
-}
-
-function saveInputs() {
-  document.querySelectorAll("input").forEach(input => {
-    if (!input.id) return;
-    const key = `spmb_${currentYear}_${input.id}`;
-    // Hanya simpan jika ada isinya
-    if (input.value && input.value.trim() !== "") {
-      localStorage.setItem(key, input.value);
-    } else {
-      localStorage.removeItem(key); // Bersihkan jika dikosongkan
-    }
-  });
-  localStorage.setItem("spmb_tahun", currentYear);
-}
-
-function resetForm() {
-  // Hapus semua data tahun ini dari localStorage
-  Object.keys(localStorage).forEach(key => {
-    if (key.startsWith(`spmb_${currentYear}_`)) {
-      localStorage.removeItem(key);
-    }
-  });
-  
-  // Reset UI
-  renderAkademikInputs();
-  renderRaporInputs();
-  document.getElementById("nilai-prestasi").value = "";
-  document.getElementById("output").innerHTML = 
-    `<em style="color:#666">💡 Form direset. Silakan isi ulang.</em>`;
-  
-  clickCount = 0;
-  popUnderOpened = false;
-}
-
-// ================= HITUNG =================
-function hitung() {
-  // Validasi input akademik
-  const akademikIds = currentYear === "2026" ? ["tka", "tkad"] : ["aspd"];
-  const kosong = akademikIds.filter(id => {
-    const val = document.getElementById(id)?.value?.trim();
-    return !val;
-  });
-  
-  if (kosong.length > 0) {
-    document.getElementById("output").innerHTML = 
-      `<span style="color:#dc3545;font-weight:bold">
-        ⚠️ Isi dulu: ${kosong.map(id => id.toUpperCase()).join(", ")}
-      </span>`;
-    return;
+    saveInputs();
+    handleUserClick();
   }
 
-  // Hitung nilai akademik
-  let nilaiAkademik = 0;
-  if (currentYear === "2026") {
-    nilaiAkademik = getValue("tka") + getValue("tkad");
-  } else {
-    nilaiAkademik = getValue("aspd");
-  }
+  // ================= INIT =================
+  document.addEventListener("DOMContentLoaded", () => {
+    const savedYear = localStorage.getItem("spmb_tahun") || "2026";
+    const radio = document.querySelector(`input[name="tahun"][value="${savedYear}"]`);
+    if (radio) radio.checked = true;
 
-  // Hitung jumlah rerata rapor
-  const subjects = currentYear === "2026" ? RAPOR_2026 : RAPOR_2025;
-  let jumlahRerataRapor = 0;
-  let detailRapor = '';
-  
-  subjects.forEach(sub => {
-    const id = `rapor_${sub.replace(/\s+/g,'_')}`;
-    const nilai = getValue(id);
-    jumlahRerataRapor += nilai;
-    detailRapor += `📊 ${sub}: ${nilai ? nilai.toFixed(2) : "-" }<br>`;
+    currentYear = savedYear;
+    updateFormulaInfo();
+    renderAkademikInputs();
+    renderRaporInputs();
+    loadInputsSmart();
   });
-
-  const nilaiPrestasi = getValue("nilai-prestasi");
-
-  // Rumus inti
-  const komponenAkademik = nilaiAkademik * CONFIG.BOBOT_AKADEMIK;
-  const komponenRapor = (jumlahRerataRapor * CONFIG.KOEF_RAPOR) * CONFIG.BOBOT_RAPOR;
-  const nilaiGabungan = komponenAkademik + komponenRapor + nilaiPrestasi;
-
-  // Output
-  const output = `
-    <strong>Tahun Kelulusan: ${currentYear}</strong><br><br>
-    📚 Rapor (${subjects.length} Mapel):<br>${detailRapor}
-    ➕ Jumlah Rerata: <strong>${jumlahRerataRapor.toFixed(2)}</strong><br><br>
-    🎓 Akademik (${currentYear === "2026" ? "TKA+TKAD" : "ASPD"}): <strong>${nilaiAkademik.toFixed(2)}</strong><br>
-    🏆 Komponen Akademik (×90%): ${komponenAkademik.toFixed(2)}<br>
-    📖 Komponen Rapor (×6%): ${komponenRapor.toFixed(2)}<br>
-    🎖️ Prestasi: ${nilaiPrestasi}<br><br>
-    🎯 <span style="font-size:1.2em;color:#155724">
-      NILAI GABUNGAN: ${nilaiGabungan.toFixed(2)}
-    </span>
-  `;
-
-  const outputBox = document.getElementById("output");
-  outputBox.innerHTML = output;
-  outputBox.classList.remove("flash");
-  void outputBox.offsetWidth;
-  outputBox.classList.add("flash");
-
-  saveInputs();
-}
-
-// ================= INIT =================
-document.addEventListener("DOMContentLoaded", () => {
-  // Set radio button sesuai tahun tersimpan
-  const savedYear = localStorage.getItem("spmb_tahun") || "2026";
-  const radio = document.querySelector(`input[name="tahun"][value="${savedYear}"]`);
-  if (radio) radio.checked = true;
-  
-  currentYear = savedYear;
-  updateFormulaInfo();
-  renderAkademikInputs();
-  renderRaporInputs();
-  loadInputsSmart();
-});
-  </script>
+</script>
 
   <!-- Footer Kontak -->
   <div style="margin-top: 2em; padding: 1em; background-color: #e6f4ea; border-top: 2px solid #a0c9a5;">
