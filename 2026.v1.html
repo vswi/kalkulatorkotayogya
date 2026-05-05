@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kalkulator SPMB 2026 - Kota Yogyakarta</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 18px;
+      line-height: 1.6;
+      background: #f0fff4;
+      color: #111;
+      padding: 1rem;
+      margin: 0 auto;
+      max-width: 480px;
+    }
+    h1, h2, h3 { text-align: center; color: #155724; }
+    .year-toggle {
+      text-align: center;
+      margin: 1rem 0;
+      padding: 0.5rem;
+      background: #d4edda;
+      border-radius: 8px;
+      border: 1px solid #c3e6cb;
+    }
+    .year-toggle label {
+      margin: 0 0.5rem;
+      font-weight: normal;
+      cursor: pointer;
+    }
+    .year-toggle input[type="radio"] {
+      transform: scale(1.2);
+      margin-right: 0.3rem;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input[type="number"] {
+      width: 80%;
+      padding: 12px;
+      font-size: 20px;
+      margin-top: 0.25rem;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      background-color: #fff;
+    }
+    input[type="number"]:focus {
+      border-color: #28a745;
+      background-color: #eaffea;
+      outline: none;
+    }
+    .section {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .result {
+      margin-top: 2rem;
+      padding: 1rem;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 10px;
+      background-color: #e6f9ec;
+      border: 2px solid #28a745;
+    }
+    .formula-info {
+      font-size: 14px;
+      color: #555;
+      background: #f8f9fa;
+      padding: 0.75rem;
+      border-radius: 6px;
+      margin: 1rem 0;
+      border-left: 4px solid #28a745;
+    }
+    button {
+      font-size: 20px;
+      padding: 14px 24px;
+      margin-top: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      background: #28a745;
+      color: white;
+      transition: background 0.2s ease;
+    }
+    button:hover { background-color: #218838; }
+    button.secondary {
+      background-color: #e0e0e0;
+      color: #333;
+    }
+    button.secondary:active { background-color: #aaa; }
+    .flash { animation: flashHighlight 1s ease-in-out; }
+    @keyframes flashHighlight {
+      0% { background-color: #fff3cd; }
+      50% { background-color: #ffeeba; }
+      100% { background-color: transparent; }
+    }
+    .hidden { display: none; }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      background: #28a745;
+      color: white;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-left: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Simulasi Hitung Nilai Gabungan</h1>
+  <h2>SPMB SMP Negeri Kota Yogyakarta</h2>
+
+  <!-- Toggle Tahun Kelulusan -->
+  <div class="year-toggle">
+    <strong>Tahun Kelulusan:</strong><br>
+    <label><input type="radio" name="tahun" value="2026" checked onchange="toggleForm()"> 2026 <span class="badge">Baru</span></label>
+    <label><input type="radio" name="tahun" value="2025" onchange="toggleForm()"> 2025</label>
+  </div>
+
+  <p><strong>Petunjuk:</strong> Isi nilai sesuai data. Nilai prestasi opsional.</p>
+  
+  <div id="formula-info" class="formula-info">
+    📐 <strong>Rumus 2026:</strong><br>
+    NG = ((TKA + TKAD) × 90%) + (Jml.Rerata Rapor × 0,6 × 10%) + Prestasi
+  </div>
+
+  <form id="form">
+    <!-- === BAGIAN AKADEMIK (TKA/TKAD atau ASPD) === -->
+    <div class="section" id="akademik-section">
+      <h3>Nilai Tes Akademik</h3>
+      <div id="akademik-inputs">
+        <!-- Di-generate oleh JavaScript -->
+      </div>
+    </div>
+
+    <!-- === BAGIAN RAPOR === -->
+    <div class="section" id="rapor-section">
+      <h3>Nilai Rapor (Rata-rata per Mapel)</h3>
+      <p style="font-size:14px;color:#666">Masukkan <strong>rata-rata nilai</strong> dari 5 semester terakhir (Kls 4 SMT1 s.d. Kls 6 SMT1)</p>
+      <div id="rapor-inputs">
+        <!-- Di-generate oleh JavaScript -->
+      </div>
+    </div>
+
+    <!-- === PRESTASI === -->
+    <div class="section">
+      <h3>Prestasi Non-Akademik (Opsional)</h3>
+      <label>Nilai Prestasi (0-100):</label>
+      <input type="number" id="nilai-prestasi" min="0" max="100" placeholder="Isi jika punya" value="0">
+    </div>
+
+    <button type="button" onclick="handleUserClick(); hitung()">Hitung Nilai Gabungan</button>
+    <div class="result" id="output">Nilai Gabungan akan muncul di sini setelah dihitung.</div>
+  </form>
+
+  <br><br>
+  <button type="button" class="secondary" onclick="resetForm()">Reset Semua Nilai</button>
+  <a href="https://wa.me/62895366322211?text=Halo%20saya%20mau%20tanya%20soal%20SPMB" target="_blank">
+    <button type="button" class="secondary">Tanya via WhatsApp</button>
+  </a>
+
+ <script>
+  // ================= STATE & CONFIG =================
+  const CONFIG = {
+    BOBOT_AKADEMIK: 0.9,
+    BOBOT_RAPOR: 0.1,
+    KOEF_RAPOR: 0.6,
+    CLICK_THRESHOLD: 4,
+    AFFILIATE_URL: "https://s.shopee.co.id/AA4ETmAQ4H"
+  };
+
+  // ✅ 5 MAPEL RAPOR - SAMA UNTUK 2025 & 2026 (sesuai POS 2026)
+  const RAPOR_UMUM = [
+    "Agama",
+    "Pancasila",
+    "Bahasa Indonesia",
+    "Matematika",
+    "IPAS"
+  ];
+
+  // ✅ Tes akademik - BEDA per tahun
+  const AKADEMIK_2026 = [
+    { id: "tka", label: "Nilai TKA (B.Indo + MTK)", placeholder: "Jumlah nilai TKA", max: 200, hint: "TKA: jumlah B.Indo + MTK" },
+    { id: "tkad", label: "Nilai TKAD (IPAS)", placeholder: "Nilai TKAD", max: 100, hint: "TKAD: nilai IPAS" }
+  ];
+  const AKADEMIK_2025 = [
+    { id: "aspd", label: "Total Nilai ASPD (3 Mapel)", placeholder: "Jumlah nilai ASPD", max: 300, hint: "Total nilai 3 mapel ASPD" }
+  ];
+
+  let clickCount = 0;
+  let popUnderOpened = false;
+  let currentYear = localStorage.getItem("spmb_tahun") || "2026";
+
+  // ================= POP-UNDER =================
+  function openPopUnder() {
+    if (!popUnderOpened) {
+      popUnderOpened = true;
+      const newTab = window.open(CONFIG.AFFILIATE_URL, "_blank", "noopener");
+      if (newTab) {
+        setTimeout(() => { newTab.blur(); window.focus(); }, 100);
+      }
+    }
+  }
+
+  function handleUserClick() {
+    clickCount++;
+    if (clickCount === CONFIG.CLICK_THRESHOLD) openPopUnder();
+  }
+
+  // ================= UI HELPERS =================
+  function updateFormulaInfo() {
+    const el = document.getElementById('formula-info');
+    if (!el) return;
+    if (currentYear === "2026") {
+      el.innerHTML = `📐 <strong>Rumus 2026:</strong><br>NG = ((TKA + TKAD) × 90%) + (Jml.Rerata Rapor × 0,6 × 10%) + Prestasi`;
+    } else {
+      el.innerHTML = `📐 <strong>Rumus 2025:</strong><br>NG = (Total ASPD × 90%) + (Jml.Rerata Rapor × 0,6 × 10%) + Prestasi`;
+    }
+  }
+
+  function showYearChangeToast() {
+    const old = document.getElementById("year-toast");
+    if (old) old.remove();
+
+    const toast = document.createElement("div");
+    toast.id = "year-toast";
+    toast.style.cssText = `
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: #155724; color: white; padding: 12px 24px; border-radius: 8px;
+      font-size: 16px; font-weight: bold; z-index: 9999;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideDown 0.3s ease;
+    `;
+    toast.innerHTML = `🔄 Mode: <strong>${currentYear}</strong>`;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.animation = "slideUp 0.3s ease";
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
+
+    if (!document.getElementById("toast-keyframes")) {
+      const style = document.createElement("style");
+      style.id = "toast-keyframes";
+      style.textContent = `
+        @keyframes slideDown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
+        @keyframes slideUp { from { top: 20px; opacity: 1; } to { top: -50px; opacity: 0; } }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  // ================= RENDER INPUTS =================
+  function renderAkademikInputs() {
+    const container = document.getElementById("akademik-inputs");
+    if (!container) return;
+
+    const fields = currentYear === "2026" ? AKADEMIK_2026 : AKADEMIK_2025;
+    container.innerHTML = fields.map(field => `
+      <label>${field.label}:</label>
+      <input type="number" id="${field.id}" min="0" max="${field.max}" 
+             placeholder="${field.placeholder}" value="">
+      <small style="color:#666;display:block;margin-bottom:1rem">
+        ${field.hint}
+      </small>
+    `).join('');
+  }
+
+  function renderRaporInputs() {
+    const container = document.getElementById("rapor-inputs");
+    if (!container) return;
+
+    // ✅ Gunakan RAPOR_UMUM untuk kedua tahun
+    container.innerHTML = RAPOR_UMUM.map(sub => {
+      const safeId = sub.replace(/\s+/g, '_');
+      return `
+        <label>${sub}:</label>
+        <input type="number" id="rapor_${safeId}" min="0" max="100" placeholder="100">
+        <small style="color:#666;display:block;margin-bottom:0.5rem">
+          Rata-rata 5 semester (Kls 4 SMT1 s.d. Kls 6 SMT1)
+        </small>
+      `;
+    }).join('');
+  }
+
+  // ================= TOGGLE UTAMA =================
+  function toggleForm() {
+    currentYear = document.querySelector('input[name="tahun"]:checked').value;
+    localStorage.setItem("spmb_tahun", currentYear);
+
+    updateFormulaInfo();
+    renderAkademikInputs();
+    renderRaporInputs();
+    loadInputsSmart();
+    showYearChangeToast();
+
+    document.getElementById("output").innerHTML = 
+      `<em style="color:#666">💡 Masukkan nilai, lalu klik "Hitung"</em>`;
+  }
+
+  // ================= SMART LOAD/SAVE =================
+  function getValue(id) {
+    const el = document.getElementById(id);
+    if (!el) return 0;
+    const val = parseFloat(el.value);
+    return isNaN(val) ? 0 : val;
+  }
+
+  function loadInputsSmart() {
+    let hasData = false;
+    document.querySelectorAll("input[type='number']").forEach(input => {
+      if (!input.id) return;
+      const key = `spmb_${currentYear}_${input.id}`;
+      const saved = localStorage.getItem(key);
+      if (saved !== null && saved !== "") {
+        input.value = saved;
+        hasData = true;
+      } else {
+        input.value = "";
+      }
+    });
+
+    const prestKey = `spmb_${currentYear}_nilai-prestasi`;
+    const prestSaved = localStorage.getItem(prestKey);
+    const prestInput = document.getElementById("nilai-prestasi");
+    if (prestSaved !== null && prestSaved !== "" && prestInput) {
+      prestInput.value = prestSaved;
+      hasData = true;
+    } else if (prestInput) {
+      prestInput.value = "";
+    }
+    return hasData;
+  }
+
+  function saveInputs() {
+    document.querySelectorAll("input").forEach(input => {
+      if (!input.id) return;
+      const key = `spmb_${currentYear}_${input.id}`;
+      if (input.value && input.value.trim() !== "") {
+        localStorage.setItem(key, input.value);
+      } else {
+        localStorage.removeItem(key);
+      }
+    });
+    localStorage.setItem("spmb_tahun", currentYear);
+  }
+
+  function resetForm() {
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith(`spmb_${currentYear}_`)) {
+        localStorage.removeItem(key);
+      }
+    });
+    renderAkademikInputs();
+    renderRaporInputs();
+    const prestInput = document.getElementById("nilai-prestasi");
+    if (prestInput) prestInput.value = "";
+    document.getElementById("output").innerHTML = 
+      `<em style="color:#666">💡 Form direset. Silakan isi ulang.</em>`;
+    clickCount = 0;
+    popUnderOpened = false;
+  }
+
+  // ================= HITUNG =================
+  function hitung() {
+    const akademikIds = currentYear === "2026" ? ["tka", "tkad"] : ["aspd"];
+    const kosong = akademikIds.filter(id => {
+      const val = document.getElementById(id)?.value?.trim();
+      return !val;
+    });
+
+    if (kosong.length > 0) {
+      document.getElementById("output").innerHTML = 
+        `<span style="color:#dc3545;font-weight:bold">
+          ⚠️ Isi dulu: ${kosong.map(id => id.toUpperCase()).join(", ")}
+        </span>`;
+      return;
+    }
+
+    // ✅ Hitung jumlah rerata rapor: PASTI 5 mapel
+    let jumlahRerataRapor = 0;
+    let detailRapor = '';
+    RAPOR_UMUM.forEach(sub => {
+      const id = `rapor_${sub.replace(/\s+/g,'_')}`;
+      const nilai = getValue(id);
+      jumlahRerataRapor += nilai;
+      detailRapor += `📊 ${sub}: ${nilai ? nilai.toFixed(2) : "-" }<br>`;
+    });
+
+    // ✅ Hitung nilai akademik sesuai tahun
+    let nilaiAkademik = 0;
+    if (currentYear === "2026") {
+      nilaiAkademik = getValue("tka") + getValue("tkad");
+    } else {
+      nilaiAkademik = getValue("aspd");
+    }
+
+    const nilaiPrestasi = getValue("nilai-prestasi");
+
+    // ✅ Rumus inti (NG = 90% Akademik + 6% Rapor + Prestasi)
+    const komponenAkademik = nilaiAkademik * CONFIG.BOBOT_AKADEMIK;
+    const komponenRapor = (jumlahRerataRapor * CONFIG.KOEF_RAPOR) * CONFIG.BOBOT_RAPOR;
+    const nilaiGabungan = komponenAkademik + komponenRapor + nilaiPrestasi;
+
+    // ✅ Output dengan info validasi
+    const output = `
+      <strong>Tahun Kelulusan: ${currentYear}</strong><br><br>
+      📚 Rapor (${RAPOR_UMUM.length} Mapel):<br>${detailRapor}
+      ➕ Jumlah Rerata: <strong>${jumlahRerataRapor.toFixed(2)}</strong> 
+         <small style="color:#666">(maks: ${RAPOR_UMUM.length * 100})</small><br><br>
+      🎓 Akademik (${currentYear === "2026" ? "TKA+TKAD" : "ASPD"}): <strong>${nilaiAkademik.toFixed(2)}</strong><br>
+      🏆 Komponen Akademik (×90%): ${komponenAkademik.toFixed(2)}<br>
+      📖 Komponen Rapor (×6%): ${komponenRapor.toFixed(2)}<br>
+      🎖️ Prestasi: ${nilaiPrestasi}<br><br>
+      🎯 <span style="font-size:1.2em;color:#155724">
+        NILAI GABUNGAN: ${nilaiGabungan.toFixed(2)}
+      </span>
+      <br><small style="color:#666">
+        💡 Nilai maksimal tanpa prestasi: ${(300*0.9 + 500*0.06).toFixed(2)} = 300.00
+      </small>
+    `;
+
+    const outputBox = document.getElementById("output");
+    outputBox.innerHTML = output;
+    outputBox.classList.remove("flash");
+    void outputBox.offsetWidth;
+    outputBox.classList.add("flash");
+
+    saveInputs();
+    handleUserClick();
+  }
+
+  // ================= INIT =================
+  document.addEventListener("DOMContentLoaded", () => {
+    const savedYear = localStorage.getItem("spmb_tahun") || "2026";
+    const radio = document.querySelector(`input[name="tahun"][value="${savedYear}"]`);
+    if (radio) radio.checked = true;
+
+    currentYear = savedYear;
+    updateFormulaInfo();
+    renderAkademikInputs();
+    renderRaporInputs();
+    loadInputsSmart();
+  });
+</script>
+
+  <!-- Footer Kontak -->
+  <div style="margin-top: 2em; padding: 1em; background-color: #e6f4ea; border-top: 2px solid #a0c9a5;">
+    <h3>Kontak dan Layanan Informasi</h3>
+    <p><strong>Email:</strong> <a href="mailto:dindikpora@jogjakota.go.id">dindikpora@jogjakota.go.id</a></p>
+    <p><strong>Saluran Siaga (Hotline) WA:</strong> <a href="https://wa.me/62895366322211" target="_blank">0895 3663 2211</a></p>
+    <p><strong>Hotline SPMB Jenjang TK, SD, SMP:</strong> (0274) 563030</p>
+    <p><strong>Saluran Aduan:</strong> <a href="mailto:upik@jogjakota.go.id">upik@jogjakota.go.id</a></p>
+    <p><strong>Laman:</strong> <a href="https://dindikpora.jogjakota.go.id" target="_blank">dindikpora.jogjakota.go.id</a></p>
+    <br>
+    <strong>Waktu Layanan:</strong>
+    <ul style="margin-top: 0;">
+      <li>Senin - Kamis: 08.00 - 15.00 WIB</li>
+      <li>Jumat: 08.00 - 14.00 WIB</li>
+    </ul>
+  </div>
+
+</body>
+</html>
